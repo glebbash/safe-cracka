@@ -21,10 +21,6 @@
           <div id="debugState"></div>
         </div>
       </aside>
-      <div class="safe-face" aria-hidden="true">
-        <span class="bolt bolt-left"></span>
-        <span class="bolt bolt-right"></span>
-      </div>
       <section id="dialShell" class="dial-shell" aria-label="Rotary safe dial">
         <div class="pointer"><span></span></div>
         <div id="dial" class="dial">
@@ -40,13 +36,41 @@
       </div>
 
       <form id="settingsForm" class="settings-form">
-        <label class="setting-row" for="cheatSetting">
+        <fieldset class="setting-group">
+          <legend class="setting-title">Combination numbers</legend>
+          <span class="setting-subtitle">Three-number mode ends right on 69. Four-number mode uses 5-4-3-2 passes, then ends left on 69.</span>
+          <div class="segmented two-up" aria-label="Combination number count">
+            <label><input type="radio" name="numberCount" value="3" /><span>3 numbers</span></label>
+            <label><input type="radio" name="numberCount" value="4" /><span>4 numbers</span></label>
+          </div>
+        </fieldset>
+
+        <label class="setting-row" for="vibrationSetting">
           <span class="setting-copy">
-            <span class="setting-title">Cheat mode</span>
-            <span class="setting-subtitle">Show the current stage, direction, and target number.</span>
+            <span class="setting-title">
+              Vibration
+              <button class="tooltip-trigger" type="button" aria-label="Vibration help" aria-describedby="vibrationTooltip">?</button>
+              <span id="vibrationTooltip" class="tooltip" role="tooltip">Not supported on PC. On Android, enable touch feedback in your device's OS settings for it to work.</span>
+            </span>
+            <span class="setting-subtitle">Confirms ticks, targets, and unlocks with a vibration pulse.</span>
           </span>
           <span class="switch">
-            <input id="cheatSetting" name="cheat" type="checkbox" />
+            <input id="vibrationSetting" name="vibration" type="checkbox" />
+            <span class="switch-track" aria-hidden="true"></span>
+          </span>
+        </label>
+
+        <label class="setting-row" for="soundSetting">
+          <span class="setting-copy">
+            <span class="setting-title">
+              Sound
+              <button class="tooltip-trigger" type="button" aria-label="Sound help" aria-describedby="soundTooltip">?</button>
+              <span id="soundTooltip" class="tooltip" role="tooltip">Preferred on PC — it's the only supported feedback there. On Android, sound doesn't come through as well, so vibration is usually better.</span>
+            </span>
+            <span class="setting-subtitle">Confirms ticks, targets, and unlocks with a click sound.</span>
+          </span>
+          <span class="switch">
+            <input id="soundSetting" name="sound" type="checkbox" />
             <span class="switch-track" aria-hidden="true"></span>
           </span>
         </label>
@@ -62,28 +86,16 @@
           </span>
         </label>
 
-        <fieldset class="setting-group">
-          <legend>
-            <span class="setting-title">Feedback</span>
-            <button class="tooltip-trigger" type="button" aria-label="Haptics help" aria-describedby="hapticsTooltip">?</button>
-            <span id="hapticsTooltip" class="tooltip" role="tooltip">For haptics to work on Android, enable touch feedback in your device's OS settings.</span>
-          </legend>
-          <span class="setting-subtitle">Choose how the dial confirms ticks, targets, and unlocks.</span>
-          <div class="segmented" aria-label="Feedback type">
-            <label><input type="radio" name="feedback" value="haptics" /><span>Haptics</span></label>
-            <label><input type="radio" name="feedback" value="sound" /><span>Sound</span></label>
-            <label><input type="radio" name="feedback" value="both" /><span>Both</span></label>
-          </div>
-        </fieldset>
-
-        <fieldset class="setting-group">
-          <legend class="setting-title">Combination numbers</legend>
-          <span class="setting-subtitle">Three-number mode ends right on 69. Four-number mode uses 5-4-3-2 passes, then ends left on 69.</span>
-          <div class="segmented two-up" aria-label="Combination number count">
-            <label><input type="radio" name="numberCount" value="3" /><span>3 numbers</span></label>
-            <label><input type="radio" name="numberCount" value="4" /><span>4 numbers</span></label>
-          </div>
-        </fieldset>
+        <label class="setting-row" for="cheatSetting">
+          <span class="setting-copy">
+            <span class="setting-title">Cheat mode</span>
+            <span class="setting-subtitle">Show the current stage, direction, and target number.</span>
+          </span>
+          <span class="switch">
+            <input id="cheatSetting" name="cheat" type="checkbox" />
+            <span class="switch-track" aria-hidden="true"></span>
+          </span>
+        </label>
       </form>
     </dialog>
     <script src="app.js"></script>

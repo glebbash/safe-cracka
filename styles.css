@@ -117,7 +117,7 @@ body {
   border-top: 1px solid rgba(255,255,255,.07);
   cursor: pointer;
 }
-.setting-copy { display: grid; gap: 5px; }
+.setting-copy { position: relative; display: grid; gap: 5px; }
 .setting-title { color: #f1f1ed; font-size: 13px; font-weight: 700; letter-spacing: .02em; }
 .setting-subtitle { display: block; color: #8f9793; font-size: 10px; line-height: 1.5; }
 .switch { position: relative; flex: 0 0 auto; width: 42px; height: 24px; }
@@ -171,7 +171,6 @@ body {
 .segmented input:checked + span { border-color: #9d7a42; color: #17130c; background: var(--brass-light); font-weight: 700; }
 .segmented input:focus-visible + span { outline: 2px solid var(--brass-light); outline-offset: 2px; }
 
-.safe-face { position: absolute; inset: 0; pointer-events: none; }
 .bolt {
   position: absolute;
   top: 54%;
