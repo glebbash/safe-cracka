@@ -14,9 +14,12 @@
         <span aria-hidden="true"></span>
       </button>
       <aside id="debugPanel" class="debug-panel" aria-live="polite">
-        <output id="cheatCurrent" class="cheat-current" aria-label="Current dial number">00</output>
+        <div class="debug-numbers">
+          <output id="cheatCurrent" class="cheat-current" aria-label="Current dial number">00</output>
+          <output id="debugTarget" class="debug-target" aria-label="Target number">Target 00</output>
+        </div>
         <div class="debug-copy">
-          <div class="debug-row"><span id="debugStage"></span><span id="debugTarget"></span></div>
+          <div class="debug-row"><span id="debugStage"></span></div>
           <div id="debugState"></div>
           <div id="debugEvent" class="debug-event"></div>
         </div>
@@ -57,7 +60,7 @@
         <label class="setting-row" for="blinkSetting">
           <span class="setting-copy">
             <span class="setting-title">Indicator blink</span>
-            <span class="setting-subtitle">Blink the top triangle when a combination number is ready to lock.</span>
+            <span class="setting-subtitle">Show the original target glow on the top triangle when a number is ready to lock.</span>
           </span>
           <span class="switch">
             <input id="blinkSetting" name="blink" type="checkbox" />

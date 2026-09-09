@@ -19,5 +19,5 @@ Four-number mode adds another random number: turn counterclockwise, clockwise,
 counterclockwise, and clockwise for 5, 4, 3, and 2 passes respectively, then
 turn counterclockwise to 69.
 
-The button in the top-right opens persistent settings for diagnostics, indicator
-blinking, haptic/sound feedback, and combination length.
+The button in the top-right opens persistent settings for diagnostics, the target
+indicator, haptic/sound feedback, and combination length.

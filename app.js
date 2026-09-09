@@ -139,10 +139,11 @@ function playSound(type) {
   if (type === 'tick' && now - lastTickSoundAt < 24) return;
   if (type === 'tick') lastTickSoundAt = now;
 
+  const tickSound = [[145, .05, .024]];
   const sounds = {
-    tick: [[115, .012, .018]],
-    error: [[165, .035, .055]],
-    target: [[510, .06, .09], [720, .05, .08]],
+    tick: tickSound,
+    error: [[165, .05, .04]],
+    target: tickSound,
     unlock: [[330, .08, .18], [495, .09, .22], [660, .08, .28]],
   };
   const start = context.currentTime;
@@ -150,7 +151,7 @@ function playSound(type) {
     const oscillator = context.createOscillator();
     const gain = context.createGain();
     const begins = start + index * .055;
-    oscillator.type = type === 'tick' ? 'square' : 'sine';
+    oscillator.type = type === 'unlock' ? 'sine' : 'square';
     oscillator.frequency.setValueAtTime(frequency, begins);
     gain.gain.setValueAtTime(.0001, begins);
     gain.gain.exponentialRampToValueAtTime(volume, begins + .006);
