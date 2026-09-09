@@ -84,7 +84,8 @@ let combination = makeCombination();
 let cheatMode = settings.cheat;
 let unlockTimer = null;
 let audioContext = null;
-let lastTickSoundAt = 0;
+let lastTickSoundAt = -Infinity;
+const activeSoundSources = new Set();
 
 function makeDirections() {
   return settings.numberCount === 4 ? [-1, 1, -1, 1, -1] : [-1, 1, -1, 1];
@@ -131,6 +132,22 @@ function getAudioContext() {
   return audioContext;
 }
 
+function trackSoundSource(source) {
+  activeSoundSources.add(source);
+  source.addEventListener('ended', () => activeSoundSources.delete(source), { once: true });
+}
+
+function stopActiveSounds() {
+  activeSoundSources.forEach((source) => {
+    try {
+      source.stop();
+    } catch {
+      // A source may already have ended between events.
+    }
+  });
+  activeSoundSources.clear();
+}
+
 function playMechanicalClick(context, begins, duration, volume, pitch = 340) {
   const body = context.createOscillator();
   const bodyGain = context.createGain();
@@ -141,6 +158,7 @@ function playMechanicalClick(context, begins, duration, volume, pitch = 340) {
   bodyGain.gain.exponentialRampToValueAtTime(volume, begins + .002);
   bodyGain.gain.exponentialRampToValueAtTime(.0001, begins + duration);
   body.connect(bodyGain).connect(context.destination);
+  trackSoundSource(body);
   body.start(begins);
   body.stop(begins + duration + .01);
 
@@ -153,6 +171,7 @@ function playMechanicalClick(context, begins, duration, volume, pitch = 340) {
   snapGain.gain.exponentialRampToValueAtTime(volume * .32, begins + .001);
   snapGain.gain.exponentialRampToValueAtTime(.0001, begins + .014);
   snap.connect(snapGain).connect(context.destination);
+  trackSoundSource(snap);
   snap.start(begins);
   snap.stop(begins + .02);
 }
@@ -162,8 +181,10 @@ function playSound(type) {
   if (!context) return;
   if (context.state === 'suspended') context.resume();
   const now = performance.now();
-  if (type === 'tick' && now - lastTickSoundAt < 24) return;
-  if (type === 'tick') lastTickSoundAt = now;
+  const isTick = type === 'tick' || type === 'error';
+  if (isTick && now - lastTickSoundAt < 20) return;
+  stopActiveSounds();
+  if (isTick) lastTickSoundAt = now;
 
   const tickPattern = [[0, .032, .14, 340]];
   const patterns = {
