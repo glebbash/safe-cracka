@@ -10,9 +10,7 @@
   </head>
   <body>
     <main id="safe" aria-label="Safe dial game">
-      <button id="settingsButton" class="settings-button" type="button" aria-label="Open settings" aria-haspopup="dialog">
-        <span aria-hidden="true"></span>
-      </button>
+      <button id="cheatToggle" class="cheat-toggle" aria-label="Toggle diagnostics" aria-pressed="false"></button>
       <aside id="debugPanel" class="debug-panel" aria-live="polite">
         <output id="cheatCurrent" class="cheat-current" aria-label="Current dial number">00</output>
         <div class="debug-copy">
@@ -33,62 +31,6 @@
         <div class="hub"></div>
       </section>
     </main>
-    <dialog id="settingsDialog" class="settings-dialog" aria-labelledby="settingsTitle">
-      <div class="settings-header">
-        <div>
-          <p class="settings-eyebrow">Safe Cracka</p>
-          <h1 id="settingsTitle">Settings</h1>
-        </div>
-        <button id="settingsClose" class="settings-close" type="button" aria-label="Close settings">&times;</button>
-      </div>
-
-      <form id="settingsForm" class="settings-form">
-        <label class="setting-row" for="cheatSetting">
-          <span class="setting-copy">
-            <span class="setting-title">Cheat mode</span>
-            <span class="setting-subtitle">Show the current stage, direction, and target number.</span>
-          </span>
-          <span class="switch">
-            <input id="cheatSetting" name="cheat" type="checkbox" />
-            <span class="switch-track" aria-hidden="true"></span>
-          </span>
-        </label>
-
-        <label class="setting-row" for="blinkSetting">
-          <span class="setting-copy">
-            <span class="setting-title">Indicator blink</span>
-            <span class="setting-subtitle">Blink the top triangle when a combination number is ready to lock.</span>
-          </span>
-          <span class="switch">
-            <input id="blinkSetting" name="blink" type="checkbox" />
-            <span class="switch-track" aria-hidden="true"></span>
-          </span>
-        </label>
-
-        <fieldset class="setting-group">
-          <legend>
-            <span class="setting-title">Feedback</span>
-            <button class="tooltip-trigger" type="button" aria-label="Haptics help" aria-describedby="hapticsTooltip">?</button>
-            <span id="hapticsTooltip" class="tooltip" role="tooltip">For haptics to work on Android, enable touch feedback in your device's OS settings.</span>
-          </legend>
-          <span class="setting-subtitle">Choose how the dial confirms ticks, targets, and unlocks.</span>
-          <div class="segmented" aria-label="Feedback type">
-            <label><input type="radio" name="feedback" value="haptics" /><span>Haptics</span></label>
-            <label><input type="radio" name="feedback" value="sound" /><span>Sound</span></label>
-            <label><input type="radio" name="feedback" value="both" /><span>Both</span></label>
-          </div>
-        </fieldset>
-
-        <fieldset class="setting-group">
-          <legend class="setting-title">Combination numbers</legend>
-          <span class="setting-subtitle">Three-number mode ends right on 69. Four-number mode uses 5-4-3-2 passes, then ends left on 69.</span>
-          <div class="segmented two-up" aria-label="Combination number count">
-            <label><input type="radio" name="numberCount" value="3" /><span>3 numbers</span></label>
-            <label><input type="radio" name="numberCount" value="4" /><span>4 numbers</span></label>
-          </div>
-        </fieldset>
-      </form>
-    </dialog>
     <script src="app.js"></script>
   </body>
 </html>

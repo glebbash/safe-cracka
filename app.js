@@ -2,47 +2,13 @@ const safe = document.querySelector('#safe');
 const shell = document.querySelector('#dialShell');
 const dial = document.querySelector('#dial');
 const dialFace = document.querySelector('#dialFace');
-const settingsButton = document.querySelector('#settingsButton');
-const settingsDialog = document.querySelector('#settingsDialog');
-const settingsClose = document.querySelector('#settingsClose');
-const settingsForm = document.querySelector('#settingsForm');
-const cheatSetting = document.querySelector('#cheatSetting');
-const blinkSetting = document.querySelector('#blinkSetting');
+const cheatToggle = document.querySelector('#cheatToggle');
 const cheatCurrent = document.querySelector('#cheatCurrent');
 const debugStage = document.querySelector('#debugStage');
 const debugTarget = document.querySelector('#debugTarget');
 const debugState = document.querySelector('#debugState');
 const debugEvent = document.querySelector('#debugEvent');
 const svgNS = 'http://www.w3.org/2000/svg';
-const settingsKey = 'safe-cracka.settings.v1';
-const defaultSettings = Object.freeze({
-  cheat: false,
-  blink: true,
-  feedback: 'haptics',
-  numberCount: 3,
-});
-
-function loadSettings() {
-  try {
-    const stored = JSON.parse(localStorage.getItem(settingsKey));
-    return {
-      cheat: typeof stored?.cheat === 'boolean' ? stored.cheat : defaultSettings.cheat,
-      blink: typeof stored?.blink === 'boolean' ? stored.blink : defaultSettings.blink,
-      feedback: ['haptics', 'sound', 'both'].includes(stored?.feedback) ? stored.feedback : defaultSettings.feedback,
-      numberCount: [3, 4].includes(Number(stored?.numberCount)) ? Number(stored.numberCount) : defaultSettings.numberCount,
-    };
-  } catch {
-    return { ...defaultSettings };
-  }
-}
-
-function saveSettings() {
-  try {
-    localStorage.setItem(settingsKey, JSON.stringify(settings));
-  } catch {
-    // The game remains usable if storage is unavailable or full.
-  }
-}
 
 for (let number = 0; number < 100; number += 1) {
   const angle = number * 3.6;
@@ -77,26 +43,15 @@ let progress = 0;
 let locked = false;
 let targetPasses = 0;
 let pendingNotch = null;
-let settings = loadSettings();
-let directions = makeDirections();
-let requiredPasses = makeRequiredPasses();
 let combination = makeCombination();
-let cheatMode = settings.cheat;
+let cheatMode = false;
 let unlockTimer = null;
-let audioContext = null;
-let lastTickSoundAt = 0;
-
-function makeDirections() {
-  return settings.numberCount === 4 ? [-1, 1, -1, 1, -1] : [-1, 1, -1, 1];
-}
-
-function makeRequiredPasses() {
-  return settings.numberCount === 4 ? [5, 4, 3, 2] : [4, 3, 2];
-}
+const directions = [-1, 1, -1, 1];
+const requiredPasses = [4, 3, 2];
 
 function makeCombination() {
   const values = [];
-  while (values.length < settings.numberCount) {
+  while (values.length < 3) {
     const value = Math.floor(Math.random() * 100);
     if (!values.includes(value)) values.push(value);
   }
@@ -123,55 +78,12 @@ function haptic(pattern) {
   if ('vibrate' in navigator) navigator.vibrate(pattern);
 }
 
-function getAudioContext() {
-  if (audioContext) return audioContext;
-  const AudioContext = window.AudioContext || window.webkitAudioContext;
-  if (!AudioContext) return null;
-  audioContext = new AudioContext();
-  return audioContext;
-}
-
-function playSound(type) {
-  const context = getAudioContext();
-  if (!context) return;
-  if (context.state === 'suspended') context.resume();
-  const now = performance.now();
-  if (type === 'tick' && now - lastTickSoundAt < 24) return;
-  if (type === 'tick') lastTickSoundAt = now;
-
-  const sounds = {
-    tick: [[115, .012, .018]],
-    error: [[165, .035, .055]],
-    target: [[510, .06, .09], [720, .05, .08]],
-    unlock: [[330, .08, .18], [495, .09, .22], [660, .08, .28]],
-  };
-  const start = context.currentTime;
-  (sounds[type] || sounds.tick).forEach(([frequency, volume, duration], index) => {
-    const oscillator = context.createOscillator();
-    const gain = context.createGain();
-    const begins = start + index * .055;
-    oscillator.type = type === 'tick' ? 'square' : 'sine';
-    oscillator.frequency.setValueAtTime(frequency, begins);
-    gain.gain.setValueAtTime(.0001, begins);
-    gain.gain.exponentialRampToValueAtTime(volume, begins + .006);
-    gain.gain.exponentialRampToValueAtTime(.0001, begins + duration);
-    oscillator.connect(gain).connect(context.destination);
-    oscillator.start(begins);
-    oscillator.stop(begins + duration + .01);
-  });
-}
-
-function feedback(type, pattern) {
-  if (settings.feedback === 'haptics' || settings.feedback === 'both') haptic(pattern);
-  if (settings.feedback === 'sound' || settings.feedback === 'both') playSound(type);
-}
-
 function logEvent(message) {
   debugEvent.textContent = message;
 }
 
 function currentTarget() {
-  return progress === combination.length ? 69 : combination[progress];
+  return progress === 3 ? 69 : combination[progress];
 }
 
 function updateDebug() {
@@ -181,9 +93,9 @@ function updateDebug() {
   if (!cheatMode) return;
 
   const direction = directions[progress] === 1 ? 'CW' : 'CCW';
-  debugStage.textContent = `Stage ${progress + 1}/${combination.length + 1} · ${direction}`;
+  debugStage.textContent = `Stage ${progress + 1}/4 · ${direction}`;
   debugTarget.textContent = `Target ${String(currentTarget()).padStart(2, '0')}`;
-  debugState.textContent = progress === combination.length
+  debugState.textContent = progress === 3
     ? 'Final run · auto-opens at 69'
     : targetPasses < requiredPasses[progress]
       ? `Target pass ${targetPasses} / ${requiredPasses[progress]}`
@@ -206,23 +118,23 @@ function processNotch(notch, direction, suppressNotchHaptic = false) {
 
   if (direction !== directions[progress]) {
     resetSequence('Wrong direction · sequence reset');
-    if (!suppressNotchHaptic) feedback('error', 8);
+    if (!suppressNotchHaptic) haptic(8);
     return 'reset';
   }
 
-  if (progress === combination.length) {
+  if (progress === 3) {
     if (numberAtNotch(notch) === 69) {
       unlock(notch);
       return 'unlocked';
     }
-    feedback('tick', 8);
+    haptic(8);
     updateDebug();
     return 'notch';
   }
 
   if (numberAtNotch(notch) === combination[progress]) {
     targetPasses += 1;
-    feedback('target', [55, 18, 75]);
+    haptic([55, 18, 75]);
     if (targetPasses >= requiredPasses[progress]) {
       pendingNotch = notch;
       safe.classList.add('hit');
@@ -236,7 +148,7 @@ function processNotch(notch, direction, suppressNotchHaptic = false) {
   }
 
   if (pendingNotch !== null && notch !== pendingNotch) safe.classList.remove('hit');
-  if (!suppressNotchHaptic) feedback('tick', 8);
+  if (!suppressNotchHaptic) haptic(8);
   updateDebug();
   return 'notch';
 }
@@ -292,7 +204,7 @@ function unlock(stopNotch) {
   safe.classList.add('open');
   logEvent('69 reached · safe unlocked');
   updateDebug();
-  feedback('unlock', [90, 40, 120]);
+  haptic([90, 40, 120]);
   unlockTimer = window.setTimeout(() => {
     combination = makeCombination();
     locked = false;
@@ -301,60 +213,31 @@ function unlock(stopNotch) {
   }, 2200);
 }
 
-function applySettings(previousSettings = null) {
-  const numberCountChanged = previousSettings && previousSettings.numberCount !== settings.numberCount;
-  const cheatDisabled = previousSettings?.cheat && !settings.cheat;
-  directions = makeDirections();
-  requiredPasses = makeRequiredPasses();
-  safe.classList.toggle('blink-enabled', settings.blink);
-  cheatMode = settings.cheat;
-  safe.classList.toggle('cheat', cheatMode);
+function enableCheatMode() {
+  if (cheatMode) return;
+  cheatMode = true;
+  safe.classList.add('cheat');
+  logEvent('Cheat mode enabled');
+  updateDebug();
+}
 
-  if (numberCountChanged || cheatDisabled) {
-    window.clearTimeout(unlockTimer);
-    locked = false;
-    combination = makeCombination();
-    safe.classList.remove('open');
-    resetSequence(numberCountChanged ? `${settings.numberCount}-number combination ready` : 'New combination generated');
-  } else {
-    updateDebug();
+cheatToggle.addEventListener('click', () => {
+  if (!cheatMode) {
+    enableCheatMode();
+    cheatToggle.setAttribute('aria-pressed', 'true');
+    return;
   }
-}
 
-function syncSettingsForm() {
-  cheatSetting.checked = settings.cheat;
-  blinkSetting.checked = settings.blink;
-  settingsForm.elements.feedback.value = settings.feedback;
-  settingsForm.elements.numberCount.value = String(settings.numberCount);
-}
-
-settingsButton.addEventListener('click', () => {
-  syncSettingsForm();
-  settingsDialog.showModal();
-});
-
-settingsClose.addEventListener('click', () => settingsDialog.close());
-settingsDialog.addEventListener('click', (event) => {
-  if (event.target === settingsDialog) settingsDialog.close();
-});
-
-settingsForm.addEventListener('change', () => {
-  const previousSettings = { ...settings };
-  settings = {
-    cheat: cheatSetting.checked,
-    blink: blinkSetting.checked,
-    feedback: settingsForm.elements.feedback.value,
-    numberCount: Number(settingsForm.elements.numberCount.value),
-  };
-  saveSettings();
-  applySettings(previousSettings);
+  window.clearTimeout(unlockTimer);
+  cheatMode = false;
+  locked = false;
+  combination = makeCombination();
+  safe.classList.remove('cheat', 'open');
+  cheatToggle.setAttribute('aria-pressed', 'false');
+  resetSequence('New combination generated');
 });
 
 shell.addEventListener('pointerdown', (event) => {
-  if (settings.feedback === 'sound' || settings.feedback === 'both') {
-    const context = getAudioContext();
-    if (context?.state === 'suspended') context.resume();
-  }
   dragging = true;
   lastAngle = angleFromPointer(event);
   shell.setPointerCapture(event.pointerId);
@@ -380,6 +263,4 @@ function release(event) {
 shell.addEventListener('pointerup', release);
 shell.addEventListener('pointercancel', release);
 shell.addEventListener('contextmenu', (event) => event.preventDefault());
-applySettings();
-syncSettingsForm();
 updateDial();
