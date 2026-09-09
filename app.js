@@ -12,7 +12,7 @@ const cheatCurrent = document.querySelector('#cheatCurrent');
 const debugStage = document.querySelector('#debugStage');
 const debugTarget = document.querySelector('#debugTarget');
 const debugState = document.querySelector('#debugState');
-const debugEvent = document.querySelector('#debugEvent');
+const debugInstruction = document.querySelector('#debugInstruction');
 const svgNS = 'http://www.w3.org/2000/svg';
 const settingsKey = 'safe-cracka.settings.v1';
 const defaultSettings = Object.freeze({
@@ -84,6 +84,9 @@ let combination = makeCombination();
 let cheatMode = settings.cheat;
 let unlockTimer = null;
 let audioContext = null;
+let clickBuffer = null;
+let nextTickSoundAt = 0;
+const scheduledTickSounds = new Set();
 
 function makeDirections() {
   return settings.numberCount === 4 ? [-1, 1, -1, 1, -1] : [-1, 1, -1, 1];
@@ -130,30 +133,54 @@ function getAudioContext() {
   return audioContext;
 }
 
-function playMechanicalClick(context, begins, duration, volume, pitch = 340) {
-  const body = context.createOscillator();
-  const bodyGain = context.createGain();
-  body.type = 'triangle';
-  body.frequency.setValueAtTime(pitch, begins);
-  body.frequency.exponentialRampToValueAtTime(85, begins + duration);
-  bodyGain.gain.setValueAtTime(.0001, begins);
-  bodyGain.gain.exponentialRampToValueAtTime(volume, begins + .002);
-  bodyGain.gain.exponentialRampToValueAtTime(.0001, begins + duration);
-  body.connect(bodyGain).connect(context.destination);
-  body.start(begins);
-  body.stop(begins + duration + .01);
+function getClickBuffer(context) {
+  if (clickBuffer) return clickBuffer;
+  const length = Math.ceil(context.sampleRate * .006);
+  clickBuffer = context.createBuffer(1, length, context.sampleRate);
+  const samples = clickBuffer.getChannelData(0);
+  let noiseState = 0x2f6e2b1;
+  for (let index = 0; index < length; index += 1) {
+    noiseState = (noiseState * 1664525 + 1013904223) >>> 0;
+    const noise = (noiseState / 0xffffffff) * 2 - 1;
+    const progress = index / length;
+    const envelope = (1 - progress) ** 3;
+    const strike = Math.sin(Math.PI * 2 * (1450 - progress * 650) * index / context.sampleRate);
+    samples[index] = (strike * .7 + noise * .3) * envelope;
+  }
+  return clickBuffer;
+}
 
-  const snap = context.createOscillator();
-  const snapGain = context.createGain();
-  snap.type = 'square';
-  snap.frequency.setValueAtTime(1050, begins);
-  snap.frequency.exponentialRampToValueAtTime(420, begins + .012);
-  snapGain.gain.setValueAtTime(.0001, begins);
-  snapGain.gain.exponentialRampToValueAtTime(volume * .32, begins + .001);
-  snapGain.gain.exponentialRampToValueAtTime(.0001, begins + .014);
-  snap.connect(snapGain).connect(context.destination);
-  snap.start(begins);
-  snap.stop(begins + .02);
+function playBufferedClick(context, startsAt, volume = .28, tickSound = false) {
+  const source = context.createBufferSource();
+  const gain = context.createGain();
+  source.buffer = getClickBuffer(context);
+  gain.gain.setValueAtTime(volume, startsAt);
+  source.connect(gain).connect(context.destination);
+  if (tickSound) {
+    scheduledTickSounds.add(source);
+    source.addEventListener('ended', () => scheduledTickSounds.delete(source), { once: true });
+  }
+  source.start(startsAt);
+}
+
+function clearTickSoundQueue(context) {
+  scheduledTickSounds.forEach((source) => {
+    try {
+      source.stop();
+    } catch {
+      // A six-millisecond click may already have finished.
+    }
+  });
+  scheduledTickSounds.clear();
+  nextTickSoundAt = context.currentTime;
+}
+
+function playTickSound(context) {
+  const now = context.currentTime;
+  if (nextTickSoundAt < now) nextTickSoundAt = now;
+  if (nextTickSoundAt > now + .045) clearTickSoundQueue(context);
+  playBufferedClick(context, nextTickSoundAt, .28, true);
+  nextTickSoundAt += .008;
 }
 
 function playSound(type) {
@@ -161,26 +188,25 @@ function playSound(type) {
   if (!context) return;
   if (context.state === 'suspended') context.resume();
 
-  const tickPattern = [[0, .032, .14, 340]];
-  const patterns = {
-    tick: tickPattern,
-    error: tickPattern,
-    target: [[0, .055, .14, 340], [.073, .075, .14, 340]],
-    unlock: [[0, .09, .16, 320], [.13, .12, .18, 430]],
-  };
-  const start = context.currentTime;
-  (patterns[type] || tickPattern).forEach(([offset, duration, volume, pitch]) => {
-    playMechanicalClick(context, start + offset, duration, volume, pitch);
-  });
+  if (type === 'tick' || type === 'error') {
+    playTickSound(context);
+    return;
+  }
+
+  clearTickSoundQueue(context);
+  const now = context.currentTime;
+  if (type === 'target') {
+    playBufferedClick(context, now, .3);
+    playBufferedClick(context, now + .073, .34);
+    return;
+  }
+  playBufferedClick(context, now, .34);
+  playBufferedClick(context, now + .13, .4);
 }
 
 function feedback(type, pattern) {
   if (settings.feedback === 'haptics' || settings.feedback === 'both') haptic(pattern);
   if (settings.feedback === 'sound' || settings.feedback === 'both') playSound(type);
-}
-
-function logEvent(message) {
-  debugEvent.textContent = message;
 }
 
 function currentTarget() {
@@ -193,24 +219,33 @@ function updateDebug() {
   cheatCurrent.value = String(current).padStart(2, '0');
   if (!cheatMode) return;
 
-  const direction = directions[progress] === 1 ? 'CW' : 'CCW';
-  debugStage.textContent = `Stage ${progress + 1}/${combination.length + 1} · ${direction}`;
+  const direction = directions[progress] === 1 ? 'right' : 'left';
+  const nextDirection = directions[progress + 1] === 1 ? 'right' : 'left';
+  debugStage.textContent = `Step ${progress + 1} of ${combination.length + 1} · Turn ${direction}`;
   debugTarget.textContent = `Target ${String(currentTarget()).padStart(2, '0')}`;
-  debugState.textContent = progress === combination.length
-    ? 'Final run · auto-opens at 69'
-    : targetPasses < requiredPasses[progress]
-      ? `Target pass ${targetPasses} / ${requiredPasses[progress]}`
-      : currentNotch === pendingNotch
-        ? `Minimum cleared · reverse now (${targetPasses})`
-        : `Minimum cleared · next target (${targetPasses})`;
+  if (locked) {
+    debugState.textContent = 'Safe unlocked';
+    debugInstruction.textContent = 'New combination starting…';
+  } else if (progress === combination.length) {
+    debugState.textContent = 'Final number';
+    debugInstruction.textContent = `Turn ${direction} to 69 · opens automatically`;
+  } else if (targetPasses < requiredPasses[progress]) {
+    debugState.textContent = `Passes ${targetPasses} of ${requiredPasses[progress]}`;
+    debugInstruction.textContent = `Keep turning ${direction}`;
+  } else if (currentNotch === pendingNotch) {
+    debugState.textContent = 'Passes complete';
+    debugInstruction.textContent = `On target · reverse ${nextDirection} to lock`;
+  } else {
+    debugState.textContent = 'Passes complete';
+    debugInstruction.textContent = `Continue ${direction} to target, then reverse`;
+  }
 }
 
-function resetSequence(reason = 'Sequence reset') {
+function resetSequence() {
   progress = 0;
   targetPasses = 0;
   pendingNotch = null;
   safe.classList.remove('hit');
-  logEvent(reason);
   updateDebug();
 }
 
@@ -218,7 +253,7 @@ function processNotch(notch, direction, suppressNotchHaptic = false) {
   if (locked) return 'locked';
 
   if (direction !== directions[progress]) {
-    resetSequence('Wrong direction · sequence reset');
+    resetSequence();
     if (!suppressNotchHaptic) feedback('error', 8);
     return 'reset';
   }
@@ -239,11 +274,9 @@ function processNotch(notch, direction, suppressNotchHaptic = false) {
     if (targetPasses >= requiredPasses[progress]) {
       pendingNotch = notch;
       safe.classList.add('hit');
-      logEvent(`Pass ${targetPasses}/${requiredPasses[progress]} · reverse now`);
       updateDebug();
       return 'hit';
     }
-    logEvent(`Target passed ${targetPasses}/${requiredPasses[progress]}`);
     updateDebug();
     return 'target-pass';
   }
@@ -266,7 +299,7 @@ function updateDial() {
     if (lastNotch === pendingNotch && direction === directions[progress + 1]) {
       confirmHit();
     } else {
-      resetSequence('Invalid reversal · sequence reset');
+      resetSequence();
     }
   }
 
@@ -288,11 +321,9 @@ function updateDial() {
 function confirmHit() {
   if (pendingNotch === null || lastNotch !== pendingNotch || locked) return;
 
-  const value = numberAtNotch(pendingNotch);
   progress += 1;
   targetPasses = 0;
   pendingNotch = null;
-  logEvent(`Number ${String(value).padStart(2, '0')} locked`);
   window.setTimeout(() => safe.classList.remove('hit'), 180);
   updateDebug();
 }
@@ -303,13 +334,12 @@ function unlock(stopNotch) {
   lastNotch = stopNotch;
   dial.style.setProperty('--rotation', `${rotation}deg`);
   safe.classList.add('open');
-  logEvent('69 reached · safe unlocked');
   updateDebug();
   feedback('unlock', [90, 40, 120]);
   unlockTimer = window.setTimeout(() => {
     combination = makeCombination();
     locked = false;
-    resetSequence('New combination ready');
+    resetSequence();
     safe.classList.remove('open');
   }, 2200);
 }
@@ -328,7 +358,7 @@ function applySettings(previousSettings = null) {
     locked = false;
     combination = makeCombination();
     safe.classList.remove('open');
-    resetSequence(numberCountChanged ? `${settings.numberCount}-number combination ready` : 'New combination generated');
+    resetSequence();
   } else {
     updateDebug();
   }

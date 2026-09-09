@@ -322,7 +322,7 @@ body {
 .cheat .debug-panel { display: grid; }
 .debug-copy { display: grid; min-width: 0; gap: 5px; padding-top: 2px; }
 .debug-row { display: flex; justify-content: space-between; gap: 8px; }
-.debug-event { min-height: 1.35em; color: rgba(255,255,255,.42); }
+.debug-instruction { min-height: 1.35em; color: rgba(255,255,255,.62); }
 #safe.hit.blink-enabled .pointer { filter: drop-shadow(0 0 9px var(--brass)); }
 #safe.open { animation: unlock 1.25s ease-in-out; }
 #safe.open .dial-shell { filter: drop-shadow(0 0 30px rgba(214,169,95,.25)); }
