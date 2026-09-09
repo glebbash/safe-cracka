@@ -10,9 +10,7 @@
   </head>
   <body>
     <main id="safe" aria-label="Safe dial game">
-      <button id="settingsButton" class="settings-button" type="button" aria-label="Open settings" aria-haspopup="dialog">
-        <span aria-hidden="true"></span>
-      </button>
+      <button id="settingsButton" class="settings-button" type="button" aria-label="Open settings" aria-haspopup="dialog"></button>
       <aside id="debugPanel" class="debug-panel" aria-live="polite">
         <div class="debug-numbers">
           <output id="cheatCurrent" class="cheat-current" aria-label="Current dial number">00</output>
@@ -38,11 +36,8 @@
     </main>
     <dialog id="settingsDialog" class="settings-dialog" aria-labelledby="settingsTitle">
       <div class="settings-header">
-        <div>
-          <p class="settings-eyebrow">Safe Cracka</p>
-          <h1 id="settingsTitle">Settings</h1>
-        </div>
-        <button id="settingsClose" class="settings-close" type="button" aria-label="Close settings">&times;</button>
+        <h1 id="settingsTitle">Settings</h1>
+        <button id="settingsClose" class="settings-close" type="button" aria-label="Close settings"></button>
       </div>
 
       <form id="settingsForm" class="settings-form">

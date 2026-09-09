@@ -131,6 +131,32 @@ function getAudioContext() {
   return audioContext;
 }
 
+function playMechanicalClick(context, begins, duration, volume, pitch = 340) {
+  const body = context.createOscillator();
+  const bodyGain = context.createGain();
+  body.type = 'triangle';
+  body.frequency.setValueAtTime(pitch, begins);
+  body.frequency.exponentialRampToValueAtTime(85, begins + duration);
+  bodyGain.gain.setValueAtTime(.0001, begins);
+  bodyGain.gain.exponentialRampToValueAtTime(volume, begins + .002);
+  bodyGain.gain.exponentialRampToValueAtTime(.0001, begins + duration);
+  body.connect(bodyGain).connect(context.destination);
+  body.start(begins);
+  body.stop(begins + duration + .01);
+
+  const snap = context.createOscillator();
+  const snapGain = context.createGain();
+  snap.type = 'square';
+  snap.frequency.setValueAtTime(1050, begins);
+  snap.frequency.exponentialRampToValueAtTime(420, begins + .012);
+  snapGain.gain.setValueAtTime(.0001, begins);
+  snapGain.gain.exponentialRampToValueAtTime(volume * .32, begins + .001);
+  snapGain.gain.exponentialRampToValueAtTime(.0001, begins + .014);
+  snap.connect(snapGain).connect(context.destination);
+  snap.start(begins);
+  snap.stop(begins + .02);
+}
+
 function playSound(type) {
   const context = getAudioContext();
   if (!context) return;
@@ -139,26 +165,16 @@ function playSound(type) {
   if (type === 'tick' && now - lastTickSoundAt < 24) return;
   if (type === 'tick') lastTickSoundAt = now;
 
-  const tickSound = [[145, .05, .024]];
-  const sounds = {
-    tick: tickSound,
-    error: [[165, .05, .04]],
-    target: tickSound,
-    unlock: [[330, .08, .18], [495, .09, .22], [660, .08, .28]],
+  const tickPattern = [[0, .032, .14, 340]];
+  const patterns = {
+    tick: tickPattern,
+    error: tickPattern,
+    target: [[0, .055, .14, 340], [.073, .075, .14, 340]],
+    unlock: [[0, .09, .16, 320], [.13, .12, .18, 430]],
   };
   const start = context.currentTime;
-  (sounds[type] || sounds.tick).forEach(([frequency, volume, duration], index) => {
-    const oscillator = context.createOscillator();
-    const gain = context.createGain();
-    const begins = start + index * .055;
-    oscillator.type = type === 'unlock' ? 'sine' : 'square';
-    oscillator.frequency.setValueAtTime(frequency, begins);
-    gain.gain.setValueAtTime(.0001, begins);
-    gain.gain.exponentialRampToValueAtTime(volume, begins + .006);
-    gain.gain.exponentialRampToValueAtTime(.0001, begins + duration);
-    oscillator.connect(gain).connect(context.destination);
-    oscillator.start(begins);
-    oscillator.stop(begins + duration + .01);
+  (patterns[type] || tickPattern).forEach(([offset, duration, volume, pitch]) => {
+    playMechanicalClick(context, start + offset, duration, volume, pitch);
   });
 }
 
