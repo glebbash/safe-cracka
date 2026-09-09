@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="theme-color" content="#090b0c" />
+    <link rel="icon" href="data:," />
+    <title>Safe</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main id="safe" aria-label="Safe dial game">
+      <button id="cheatToggle" class="cheat-toggle" aria-label="Toggle diagnostics" aria-pressed="false"></button>
+      <aside id="debugPanel" class="debug-panel" aria-live="polite">
+        <output id="cheatCurrent" class="cheat-current" aria-label="Current dial number">00</output>
+        <div class="debug-copy">
+          <div class="debug-row"><span id="debugStage"></span><span id="debugTarget"></span></div>
+          <div id="debugState"></div>
+          <div id="debugEvent" class="debug-event"></div>
+        </div>
+      </aside>
+      <div class="safe-face" aria-hidden="true">
+        <span class="bolt bolt-left"></span>
+        <span class="bolt bolt-right"></span>
+      </div>
+      <section id="dialShell" class="dial-shell" aria-label="Rotary safe dial">
+        <div class="pointer"><span></span></div>
+        <div id="dial" class="dial">
+          <svg id="dialFace" viewBox="0 0 400 400" role="presentation"></svg>
+        </div>
+        <div class="hub"></div>
+      </section>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>

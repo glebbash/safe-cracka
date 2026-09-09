@@ -1,0 +1,218 @@
+:root {
+  color-scheme: dark;
+  --brass: #d6a95f;
+  --brass-light: #f2d49a;
+  --rotation: 0deg;
+}
+
+* { box-sizing: border-box; }
+html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+
+body {
+  background: #050607;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+#safe {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 480px;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 50% 58%, rgba(86, 94, 91, .18), transparent 48%),
+    linear-gradient(135deg, #111516 0%, #080a0b 52%, #121516 100%);
+}
+
+#safe::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: .22;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.28'/%3E%3C/svg%3E");
+  mix-blend-mode: soft-light;
+}
+
+.cheat-toggle {
+  position: absolute;
+  z-index: 12;
+  top: max(22px, env(safe-area-inset-top));
+  right: 22px;
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  background: radial-gradient(circle at 36% 30%, #69706e, #232827 60%, #090a0a);
+  box-shadow: 0 2px 5px #000, inset 0 1px 2px rgba(255,255,255,.25);
+}
+
+.cheat .cheat-toggle {
+  background: radial-gradient(circle at 36% 30%, var(--brass-light), #7b6035 64%, #171008);
+  box-shadow: 0 0 12px rgba(214,169,95,.35), inset 0 1px 2px rgba(255,255,255,.35);
+}
+
+.safe-face { position: absolute; inset: 0; pointer-events: none; }
+.bolt {
+  position: absolute;
+  top: 54%;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, #69706e, #232827 60%, #090a0a);
+  box-shadow: 0 2px 5px #000, inset 0 1px 2px rgba(255,255,255,.25);
+}
+.bolt-left { left: 7%; }
+.bolt-right { right: 7%; }
+
+.dial-shell {
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  top: 61%;
+  width: min(88vw, 440px, 57vh);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  touch-action: none;
+  cursor: grab;
+  filter: drop-shadow(0 28px 30px rgba(0, 0, 0, .65));
+}
+.dial-shell:active { cursor: grabbing; }
+
+.dial-shell::before {
+  content: "";
+  position: absolute;
+  inset: -14px;
+  z-index: -1;
+  border-radius: 50%;
+  border: 1px solid #343a39;
+  background:
+    radial-gradient(circle at 34% 25%, rgba(255,255,255,.15), transparent 34%),
+    radial-gradient(circle, #303633 0%, #232726 38%, #111413 69%, #272c2a 70%, #080a0a 74%);
+  box-shadow: inset 0 5px 10px rgba(255,255,255,.08), inset 0 -12px 22px #020303, 0 0 0 4px #080a0a;
+}
+
+.dial-shell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(circle at 37% 29%, rgba(255,255,255,.13), transparent 35%);
+  mix-blend-mode: screen;
+}
+
+.pointer {
+  position: absolute;
+  z-index: 8;
+  top: -24px;
+  left: 50%;
+  width: 34px;
+  height: 48px;
+  transform: translateX(-50%);
+  filter: drop-shadow(0 4px 4px #000);
+}
+.pointer::before {
+  content: "";
+  position: absolute;
+  left: 12px;
+  top: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 25px solid var(--brass-light);
+}
+.pointer span {
+  position: absolute;
+  top: 3px;
+  left: 15px;
+  width: 4px;
+  height: 13px;
+  background: white;
+  box-shadow: 0 0 9px var(--brass-light);
+}
+
+.dial {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  border-radius: 50%;
+  transform: rotate(var(--rotation));
+  will-change: transform;
+  background: transparent;
+}
+
+#dialFace { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.tick { stroke: #a7aaa4; stroke-width: 1.2; opacity: .62; }
+.tick.five { stroke: #d0cfc6; stroke-width: 1.8; opacity: .82; }
+.tick.ten { stroke: var(--brass-light); stroke-width: 2.5; opacity: 1; }
+.dial-number { fill: #e2e0d6; font-size: 16px; font-weight: 500; text-anchor: middle; dominant-baseline: middle; }
+
+.hub {
+  position: absolute;
+  inset: 25%;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  border: 1px solid #4b504d;
+  border-radius: 50%;
+  background: radial-gradient(circle at 36% 31%, #444a47, #1b1f1e 55%, #090a0a 73%);
+  box-shadow: inset 0 4px 8px rgba(255,255,255,.09), inset 0 -8px 12px #080909, 0 8px 15px rgba(0,0,0,.5);
+}
+
+.cheat-current {
+  width: 68px;
+  color: rgba(255,255,255,.1);
+  font-size: clamp(42px, 13vw, 62px);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.08em;
+  line-height: .9;
+  text-align: center;
+}
+
+.debug-panel {
+  position: absolute;
+  z-index: 10;
+  top: max(20px, env(safe-area-inset-top));
+  right: 52px;
+  left: 22px;
+  display: none;
+  grid-template-columns: 68px minmax(0, 1fr);
+  align-items: start;
+  gap: 14px;
+  color: rgba(242, 212, 154, .55);
+  font-size: 9px;
+  line-height: 1.35;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.cheat .debug-panel { display: grid; }
+.debug-copy { display: grid; min-width: 0; gap: 5px; padding-top: 2px; }
+.debug-row { display: flex; justify-content: space-between; gap: 8px; }
+.debug-event { min-height: 1.35em; color: rgba(255,255,255,.42); }
+#safe.hit .pointer { filter: drop-shadow(0 0 9px var(--brass)); }
+#safe.open { animation: unlock 1.25s ease-in-out; }
+#safe.open .dial-shell { filter: drop-shadow(0 0 30px rgba(214,169,95,.25)); }
+
+@keyframes unlock {
+  35% { transform: scale(.992); filter: brightness(1.25); }
+  65% { transform: scale(1.008); filter: brightness(1.08); }
+}
+
+@media (min-width: 700px) {
+  .dial-shell { top: 62%; }
+  .bolt-left { left: calc(50% - 300px); }
+  .bolt-right { right: calc(50% - 300px); }
+}
+@media (max-height: 600px) {
+  .dial-shell { top: 64%; width: min(72vh, 88vw); }
+}
