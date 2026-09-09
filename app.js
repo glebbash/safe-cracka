@@ -12,7 +12,6 @@ const cheatCurrent = document.querySelector('#cheatCurrent');
 const debugStage = document.querySelector('#debugStage');
 const debugTarget = document.querySelector('#debugTarget');
 const debugState = document.querySelector('#debugState');
-const debugInstruction = document.querySelector('#debugInstruction');
 const svgNS = 'http://www.w3.org/2000/svg';
 const settingsKey = 'safe-cracka.settings.v1';
 const defaultSettings = Object.freeze({
@@ -221,23 +220,21 @@ function updateDebug() {
 
   const direction = directions[progress] === 1 ? 'right' : 'left';
   const nextDirection = directions[progress + 1] === 1 ? 'right' : 'left';
-  debugStage.textContent = `Step ${progress + 1} of ${combination.length + 1} · Turn ${direction}`;
+  const finalDial = progress === combination.length;
+  const requiredTurns = finalDial ? 1 : requiredPasses[progress];
+  const completedTurns = locked ? requiredTurns : Math.min(targetPasses, requiredTurns);
+  debugStage.textContent = `Dial ${progress + 1}/${combination.length + 1} | Turn ${completedTurns}/${requiredTurns}`;
   debugTarget.textContent = `Target ${String(currentTarget()).padStart(2, '0')}`;
   if (locked) {
     debugState.textContent = 'Safe unlocked';
-    debugInstruction.textContent = 'New combination starting…';
-  } else if (progress === combination.length) {
-    debugState.textContent = 'Final number';
-    debugInstruction.textContent = `Turn ${direction} to 69 · opens automatically`;
-  } else if (targetPasses < requiredPasses[progress]) {
-    debugState.textContent = `Passes ${targetPasses} of ${requiredPasses[progress]}`;
-    debugInstruction.textContent = `Keep turning ${direction}`;
+  } else if (finalDial) {
+    debugState.textContent = `Turn ${direction} · stop at target`;
   } else if (currentNotch === pendingNotch) {
-    debugState.textContent = 'Passes complete';
-    debugInstruction.textContent = `On target · reverse ${nextDirection} to lock`;
+    debugState.textContent = `Turn ${nextDirection}`;
+  } else if (targetPasses >= requiredTurns - 1) {
+    debugState.textContent = `Turn ${direction} · stop at target`;
   } else {
-    debugState.textContent = 'Passes complete';
-    debugInstruction.textContent = `Continue ${direction} to target, then reverse`;
+    debugState.textContent = `Turn ${direction}`;
   }
 }
 
