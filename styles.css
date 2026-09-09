@@ -38,25 +38,148 @@ body {
   mix-blend-mode: soft-light;
 }
 
-.cheat-toggle {
+.settings-button {
   position: absolute;
   z-index: 12;
-  top: max(22px, env(safe-area-inset-top));
-  right: 22px;
-  width: 14px;
-  height: 14px;
+  top: max(16px, env(safe-area-inset-top));
+  right: 16px;
+  width: 36px;
+  height: 36px;
   padding: 0;
-  border: 0;
+  border: 1px solid #454b49;
   border-radius: 50%;
   cursor: pointer;
   background: radial-gradient(circle at 36% 30%, #69706e, #232827 60%, #090a0a);
   box-shadow: 0 2px 5px #000, inset 0 1px 2px rgba(255,255,255,.25);
 }
 
-.cheat .cheat-toggle {
-  background: radial-gradient(circle at 36% 30%, var(--brass-light), #7b6035 64%, #171008);
-  box-shadow: 0 0 12px rgba(214,169,95,.35), inset 0 1px 2px rgba(255,255,255,.35);
+.settings-button span,
+.settings-button span::before {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: 15px;
+  height: 3px;
+  border-radius: 3px;
+  background: #c8ccc9;
+  box-shadow: 0 -5px #c8ccc9, 0 5px #c8ccc9;
+  content: "";
+  transform: translate(-50%, -50%);
 }
+.settings-button span::before {
+  width: 3px;
+  height: 3px;
+  background: #202423;
+  box-shadow: 5px -5px #202423, -3px 5px #202423;
+}
+.settings-button:focus-visible,
+.settings-close:focus-visible,
+.tooltip-trigger:focus-visible { outline: 2px solid var(--brass-light); outline-offset: 3px; }
+.settings-button:hover { filter: brightness(1.18); }
+
+.settings-dialog {
+  width: min(calc(100% - 28px), 460px);
+  max-height: min(720px, calc(100% - 28px));
+  margin: auto;
+  padding: 0;
+  overflow: auto;
+  border: 1px solid #454b49;
+  border-radius: 18px;
+  color: #eeeee9;
+  background: linear-gradient(145deg, #202524, #101313 60%);
+  box-shadow: 0 30px 90px rgba(0,0,0,.75), inset 0 1px rgba(255,255,255,.06);
+  user-select: text;
+  -webkit-user-select: text;
+}
+.settings-dialog::backdrop { background: rgba(2,3,3,.78); backdrop-filter: blur(5px); }
+.settings-header {
+  position: sticky;
+  z-index: 2;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 22px 22px 16px;
+  background: linear-gradient(#202524 75%, transparent);
+}
+.settings-header h1 { margin: 2px 0 0; color: var(--brass-light); font-size: 24px; letter-spacing: .02em; }
+.settings-eyebrow { margin: 0; color: #858d89; font-size: 9px; letter-spacing: .2em; text-transform: uppercase; }
+.settings-close {
+  width: 34px;
+  height: 34px;
+  padding: 0 0 3px;
+  border: 1px solid #454b49;
+  border-radius: 50%;
+  color: #d4d7d5;
+  background: #171b1a;
+  font: inherit;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+.settings-form { display: grid; gap: 4px; padding: 0 22px 24px; }
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 16px 0;
+  border-top: 1px solid rgba(255,255,255,.07);
+  cursor: pointer;
+}
+.setting-copy { display: grid; gap: 5px; }
+.setting-title { color: #f1f1ed; font-size: 13px; font-weight: 700; letter-spacing: .02em; }
+.setting-subtitle { display: block; color: #8f9793; font-size: 10px; line-height: 1.5; }
+.switch { position: relative; flex: 0 0 auto; width: 42px; height: 24px; }
+.switch input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.switch-track { position: absolute; inset: 0; border-radius: 20px; background: #303634; box-shadow: inset 0 1px 4px #090a0a; transition: background .18s; }
+.switch-track::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #c9cecb; box-shadow: 0 2px 4px #070808; transition: transform .18s; }
+.switch input:checked + .switch-track { background: #8a6b39; }
+.switch input:checked + .switch-track::after { transform: translateX(18px); background: var(--brass-light); }
+.switch input:focus-visible + .switch-track { outline: 2px solid var(--brass-light); outline-offset: 3px; }
+.setting-group { min-width: 0; margin: 0; padding: 17px 0; border: 0; border-top: 1px solid rgba(255,255,255,.07); }
+.setting-group legend { position: relative; width: 100%; padding: 0; }
+.tooltip-trigger {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  margin-left: 4px;
+  padding: 0;
+  border: 1px solid #626965;
+  border-radius: 50%;
+  color: var(--brass-light);
+  background: transparent;
+  font: inherit;
+  font-size: 10px;
+  cursor: help;
+}
+.tooltip {
+  position: absolute;
+  z-index: 4;
+  top: 27px;
+  left: 0;
+  display: none;
+  width: min(320px, calc(100vw - 76px));
+  padding: 10px 12px;
+  border: 1px solid #635337;
+  border-radius: 8px;
+  color: #dedfd9;
+  background: #151817;
+  box-shadow: 0 10px 26px rgba(0,0,0,.6);
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 1.45;
+}
+.tooltip-trigger:hover + .tooltip,
+.tooltip-trigger:focus + .tooltip { display: block; }
+.segmented { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-top: 12px; }
+.segmented.two-up { grid-template-columns: repeat(2, 1fr); }
+.segmented label { position: relative; cursor: pointer; }
+.segmented input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.segmented span { display: grid; min-height: 36px; place-items: center; padding: 7px; border: 1px solid #3c4240; border-radius: 8px; color: #9da4a1; background: #151817; font-size: 10px; text-align: center; }
+.segmented input:checked + span { border-color: #9d7a42; color: #17130c; background: var(--brass-light); font-weight: 700; }
+.segmented input:focus-visible + span { outline: 2px solid var(--brass-light); outline-offset: 2px; }
 
 .safe-face { position: absolute; inset: 0; pointer-events: none; }
 .bolt {
@@ -200,12 +323,22 @@ body {
 .debug-row { display: flex; justify-content: space-between; gap: 8px; }
 .debug-event { min-height: 1.35em; color: rgba(255,255,255,.42); }
 #safe.hit .pointer { filter: drop-shadow(0 0 9px var(--brass)); }
+#safe.hit.blink-enabled .pointer { animation: pointer-blink .55s ease-in-out infinite alternate; }
 #safe.open { animation: unlock 1.25s ease-in-out; }
 #safe.open .dial-shell { filter: drop-shadow(0 0 30px rgba(214,169,95,.25)); }
 
 @keyframes unlock {
   35% { transform: scale(.992); filter: brightness(1.25); }
   65% { transform: scale(1.008); filter: brightness(1.08); }
+}
+
+@keyframes pointer-blink {
+  from { opacity: .28; filter: drop-shadow(0 0 2px var(--brass)); }
+  to { opacity: 1; filter: drop-shadow(0 0 13px var(--brass-light)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #safe.hit.blink-enabled .pointer { animation: none; }
 }
 
 @media (min-width: 700px) {
